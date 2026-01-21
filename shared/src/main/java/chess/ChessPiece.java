@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Represents a single chess piece
@@ -10,8 +9,6 @@ import java.util.List;
  * signature of the existing methods.
  */
 public class ChessPiece {
-
-
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
 
@@ -54,7 +51,6 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece piece = board.getPiece(myPosition);
-        return List.of();
+        return PieceMovesCalculator.create(board, myPosition).pieceMoves();
     }
 }

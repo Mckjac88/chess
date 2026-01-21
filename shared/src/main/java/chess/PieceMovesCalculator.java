@@ -6,18 +6,23 @@ import java.util.HashSet;
 /**
  * A Calculator to determine viable moves
  */
-public class PieceMovesCalculator {
-
-    private final ChessBoard board;
-    private final ChessPosition position;
-    private final ChessPiece piece;
-    private final HashSet<ChessMove> validMoves = new HashSet<>();
-    private enum MoveType {CLEAR, TAKE, BLOCKED};
+public abstract class PieceMovesCalculator {
+    protected final ChessBoard board;
+    protected final ChessPosition position;
+    protected final ChessPiece piece;
+    protected final HashSet<ChessMove> validMoves = new HashSet<>();
+    protected enum MoveType {CLEAR, TAKE, BLOCKED};
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position){
         this.board = board;
         this.position = position;
         this.piece = board.getPiece(position);
+    }
+
+    public static PieceMovesCalculator create(ChessBoard board, ChessPosition position){
+        ChessPiece piece = board.getPiece(position);
+        if (piece.getPieceType() == ChessPiece.PieceType.QUEEN) return new QueenMovesCalculator(board, position);
+        else throw new RuntimeException("Other Pieces not implemented yet");
     }
 
     MoveType validMove(ChessPosition targetPosition) {
@@ -47,7 +52,24 @@ public class PieceMovesCalculator {
         } while (!stopped);
     }
 
-    Collection<ChessMove> pieceMoves(){
-        return validMoves;
+    abstract Collection<ChessMove> pieceMoves();
+
+    private static class QueenMovesCalculator extends PieceMovesCalculator {
+        public QueenMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
+        }
+
+        @Override
+        Collection<ChessMove> pieceMoves() {
+            moveDirection(-1,-1, false);
+            moveDirection(-1,0, false);
+            moveDirection(-1,1, false);
+            moveDirection(0,-1, false);
+            moveDirection(0,1, false);
+            moveDirection(1,-1, false);
+            moveDirection(1,0, false);
+            moveDirection(1,1, false);
+            return validMoves;
+        }
     }
 }
