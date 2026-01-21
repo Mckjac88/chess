@@ -9,6 +9,13 @@ import java.util.Collection;
  * signature of the existing methods.
  */
 public class ChessGame {
+    /**
+     * Enum identifying the 2 possible teams in a chess game
+     */
+    public enum TeamColor {
+        WHITE,
+        BLACK
+    }
 
     public ChessGame() {
 
@@ -30,13 +37,7 @@ public class ChessGame {
         throw new RuntimeException("Not implemented");
     }
 
-    /**
-     * Enum identifying the 2 possible teams in a chess game
-     */
-    public enum TeamColor {
-        WHITE,
-        BLACK
-    }
+
 
     /**
      * Gets a valid moves for a piece at the given location
@@ -46,7 +47,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        return new PieceMovesCalculator(getBoard(), startPosition).pieceMoves();
     }
 
     /**

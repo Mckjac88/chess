@@ -1,7 +1,7 @@
 package chess;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
 
 /**
  * A Calculator to determine viable moves
@@ -11,7 +11,8 @@ public class PieceMovesCalculator {
     private final ChessBoard board;
     private final ChessPosition position;
     private final ChessPiece piece;
-    private ChessPosition targetPosition;
+    private final HashSet<ChessMove> validMoves = new HashSet<>();
+    private enum MoveType {CLEAR, TAKE, BLOCKED};
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position){
         this.board = board;
@@ -19,17 +20,34 @@ public class PieceMovesCalculator {
         this.piece = board.getPiece(position);
     }
 
-    boolean validMove() {
+    MoveType validMove(ChessPosition targetPosition) {
         if (targetPosition.getRow() < 1 || targetPosition.getRow() > 8 || targetPosition.getColumn() < 1 || targetPosition.getColumn() > 8) {
-            return false;
-        } else if (board.getPiece(targetPosition) != null) {
-            return board.getPiece(targetPosition).getTeamColor() == piece.getTeamColor();
-        } else {
-            return true;
-        }
+            return MoveType.BLOCKED;
+        } else if (board.getPiece(targetPosition) == null) {
+            return MoveType.CLEAR;
+        } else if (board.getPiece(targetPosition).getTeamColor() != piece.getTeamColor()) {
+            return MoveType.TAKE;
+        } else return MoveType.BLOCKED;
+    }
+
+    void moveDirection(int rowAdjust, int columnAdjust, boolean once){
+        boolean stopped = once;
+        ChessPosition targetPosition = new ChessPosition(position.getRow(), position.getColumn());
+        MoveType targetMove;
+
+        do {
+            targetPosition = new ChessPosition(targetPosition.getRow()+rowAdjust, targetPosition.getColumn()+columnAdjust);
+            targetMove = validMove(targetPosition);
+            if (targetMove != MoveType.BLOCKED) {
+                validMoves.add(new ChessMove(position, targetPosition, null));
+            }
+            if (targetMove != MoveType.CLEAR) {
+                stopped = true;
+            }
+        } while (!stopped);
     }
 
     Collection<ChessMove> pieceMoves(){
-        return List.of();
-    };
+        return validMoves;
+    }
 }
