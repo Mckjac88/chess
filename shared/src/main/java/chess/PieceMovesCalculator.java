@@ -22,6 +22,10 @@ public abstract class PieceMovesCalculator {
     public static PieceMovesCalculator create(ChessBoard board, ChessPosition position){
         ChessPiece piece = board.getPiece(position);
         if (piece.getPieceType() == ChessPiece.PieceType.QUEEN) return new QueenMovesCalculator(board, position);
+        if (piece.getPieceType() == ChessPiece.PieceType.KING) return new KingMovesCalculator(board, position);
+        if (piece.getPieceType() == ChessPiece.PieceType.ROOK) return new RookMovesCalculator(board, position);
+        if (piece.getPieceType() == ChessPiece.PieceType.BISHOP) return new BishopMovesCalculator(board, position);
+        if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT) return new KnightMovesCalculator(board, position);
         else throw new RuntimeException("Other Pieces not implemented yet");
     }
 
@@ -69,6 +73,75 @@ public abstract class PieceMovesCalculator {
             moveDirection(1,-1, false);
             moveDirection(1,0, false);
             moveDirection(1,1, false);
+            return validMoves;
+        }
+    }
+
+    private static class KingMovesCalculator extends PieceMovesCalculator {
+        public KingMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
+        }
+
+        @Override
+        Collection<ChessMove> pieceMoves() {
+            moveDirection(-1,-1, true);
+            moveDirection(-1,0, true);
+            moveDirection(-1,1, true);
+            moveDirection(0,-1, true);
+            moveDirection(0,1, true);
+            moveDirection(1,-1, true);
+            moveDirection(1,0, true);
+            moveDirection(1,1, true);
+            return validMoves;
+        }
+    }
+
+    private static class RookMovesCalculator extends PieceMovesCalculator {
+        public RookMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
+        }
+
+        @Override
+        Collection<ChessMove> pieceMoves() {
+            moveDirection(-1,0, false);
+            moveDirection(0,-1, false);
+            moveDirection(0,1, false);
+            moveDirection(1,0, false);
+
+            return validMoves;
+        }
+    }
+
+    private static class BishopMovesCalculator extends PieceMovesCalculator {
+        public BishopMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
+        }
+
+        @Override
+        Collection<ChessMove> pieceMoves() {
+            moveDirection(-1,-1, false);
+            moveDirection(-1,1, false);
+            moveDirection(1,-1, false);
+            moveDirection(1,1, false);
+            return validMoves;
+        }
+    }
+
+    private static class KnightMovesCalculator extends PieceMovesCalculator {
+        public KnightMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
+        }
+
+        @Override
+        Collection<ChessMove> pieceMoves() {
+            moveDirection(-2,-1, true);
+            moveDirection(-2,1, true);
+            moveDirection(-1,-2, true);
+            moveDirection(-1,2, true);
+            moveDirection(1,-2, true);
+            moveDirection(1,2, true);
+            moveDirection(2,-1, true);
+            moveDirection(2,1, true);
             return validMoves;
         }
     }
