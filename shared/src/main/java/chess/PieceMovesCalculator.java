@@ -11,7 +11,7 @@ public abstract class PieceMovesCalculator {
     protected final ChessPosition position;
     protected final ChessPiece piece;
     protected final HashSet<ChessMove> validMoves = new HashSet<>();
-    protected enum MoveType {CLEAR, TAKE, BLOCKED};
+    protected enum MoveType {CLEAR, TAKE, BLOCKED}
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position){
         this.board = board;
@@ -26,7 +26,8 @@ public abstract class PieceMovesCalculator {
         if (piece.getPieceType() == ChessPiece.PieceType.ROOK) return new RookMovesCalculator(board, position);
         if (piece.getPieceType() == ChessPiece.PieceType.BISHOP) return new BishopMovesCalculator(board, position);
         if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT) return new KnightMovesCalculator(board, position);
-        else throw new RuntimeException("Other Pieces not implemented yet");
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN) return new PawnMovesCalculator(board, position);
+        else throw new RuntimeException("Unrecognized piece");
     }
 
     MoveType validMove(ChessPosition targetPosition) {
@@ -142,6 +143,58 @@ public abstract class PieceMovesCalculator {
             moveDirection(1,2, true);
             moveDirection(2,-1, true);
             moveDirection(2,1, true);
+            return validMoves;
+        }
+    }
+
+    private static class PawnMovesCalculator extends PieceMovesCalculator {
+        public PawnMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
+        }
+
+        void moveDirection(ChessGame.TeamColor color){
+            int rowAdjust, startRow;
+            if(color == ChessGame.TeamColor.WHITE) {
+                rowAdjust = 1;
+                startRow = 2;
+            }
+            else {
+                rowAdjust = -1;
+                startRow = 7;
+            }
+            ChessPosition targetPosition = new ChessPosition(position.getRow(), position.getColumn());
+
+            MoveType targetMove;
+            targetPosition = new ChessPosition(targetPosition.getRow() + rowAdjust, targetPosition.getColumn());
+            ChessPosition pawnTakeLeft = new ChessPosition(targetPosition.getRow(), targetPosition.getColumn()-1);
+            ChessPosition pawnTakeRight = new ChessPosition(targetPosition.getRow(), targetPosition.getColumn()+1);
+
+            targetMove = validMove(targetPosition);
+            if (targetMove == MoveType.CLEAR) {
+                validMoves.add(new ChessMove(position, targetPosition, null));
+                if (position.getRow() == startRow) {
+                    ChessPosition doubleStep = new ChessPosition(targetPosition.getRow() + rowAdjust, targetPosition.getColumn());
+                    targetMove = validMove(doubleStep);
+                    if (targetMove == MoveType.CLEAR) {
+                        validMoves.add(new ChessMove(position, doubleStep, null));
+                    }
+                }
+            }
+
+            targetMove = validMove(pawnTakeLeft);
+            if (targetMove == MoveType.TAKE) {
+                validMoves.add(new ChessMove(position, pawnTakeLeft, null));
+            }
+
+            targetMove = validMove(pawnTakeRight);
+            if (targetMove == MoveType.TAKE) {
+                validMoves.add(new ChessMove(position, pawnTakeRight, null));
+            }
+        }
+
+        @Override
+        Collection<ChessMove> pieceMoves() {
+            moveDirection(piece.getTeamColor());
             return validMoves;
         }
     }
