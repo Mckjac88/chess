@@ -15,7 +15,11 @@ public abstract class PieceMovesCalculator {
 
     protected int[][] moveAdjusts;
     protected boolean moveLimit = false;
-    protected ChessPiece.PieceType[] possiblePromotions = new ChessPiece.PieceType[] {ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT};
+    protected ChessPiece.PieceType[] possiblePromotions = new ChessPiece.PieceType[] {
+            ChessPiece.PieceType.QUEEN,
+            ChessPiece.PieceType.ROOK,
+            ChessPiece.PieceType.BISHOP,
+            ChessPiece.PieceType.KNIGHT};
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position){
         this.board = board;
@@ -25,13 +29,13 @@ public abstract class PieceMovesCalculator {
 
     public static PieceMovesCalculator create(ChessBoard board, ChessPosition position){
         ChessPiece.PieceType type = board.getPiece(position).getPieceType();
-        if (type == ChessPiece.PieceType.QUEEN) return new QueenMovesCalculator(board, position);
-        else if (type == ChessPiece.PieceType.KING) return new KingMovesCalculator(board, position);
-        else if (type == ChessPiece.PieceType.ROOK) return new RookMovesCalculator(board, position);
-        else if (type == ChessPiece.PieceType.BISHOP) return new BishopMovesCalculator(board, position);
-        else if (type == ChessPiece.PieceType.KNIGHT) return new KnightMovesCalculator(board, position);
-        else if (type == ChessPiece.PieceType.PAWN) return new PawnMovesCalculator(board, position);
-        else throw new RuntimeException("Unrecognized piece");
+        if (type == ChessPiece.PieceType.QUEEN) {return new QueenMovesCalculator(board, position);}
+        else if (type == ChessPiece.PieceType.KING) {return new KingMovesCalculator(board, position);}
+        else if (type == ChessPiece.PieceType.ROOK) {return new RookMovesCalculator(board, position);}
+        else if (type == ChessPiece.PieceType.BISHOP) {return new BishopMovesCalculator(board, position);}
+        else if (type == ChessPiece.PieceType.KNIGHT) {return new KnightMovesCalculator(board, position);}
+        else if (type == ChessPiece.PieceType.PAWN) {return new PawnMovesCalculator(board, position);}
+        else {throw new RuntimeException("Unrecognized piece");}
     }
 
     MoveType validMove(ChessPosition targetPosition) {
@@ -41,7 +45,7 @@ public abstract class PieceMovesCalculator {
             return MoveType.CLEAR;
         } else if (board.getPiece(targetPosition).getTeamColor() != piece.getTeamColor()) {
             return MoveType.TAKE;
-        } else return MoveType.BLOCKED;
+        } else {return MoveType.BLOCKED;}
     }
 
     void moveDirection(int rowAdjust, int columnAdjust, boolean once){
@@ -67,7 +71,7 @@ public abstract class PieceMovesCalculator {
                 validMoves.add(new ChessMove(position, targetPosition, type));
             }
         }
-        else validMoves.add(new ChessMove(position, targetPosition, null));
+        else {validMoves.add(new ChessMove(position, targetPosition, null));}
     }
 
     Collection<ChessMove> pieceMoves() {
