@@ -3,6 +3,7 @@ package chess;
 import java.util.Collection;
 import java.util.HashSet;
 import static chess.ChessPiece.PieceType.*;
+import static chess.PieceMovesCalculator.Direction.*;
 
 /**
  * A Calculator to determine viable moves
@@ -104,9 +105,9 @@ public abstract class PieceMovesCalculator {
         public QueenMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
-                            Direction.LEFT, Direction.RIGHT,
-                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
+                    UPLEFT, UP, UPRIGHT,
+                    LEFT, RIGHT,
+                    DOWNLEFT, DOWN, DOWNRIGHT
             };
         }
 
@@ -116,9 +117,9 @@ public abstract class PieceMovesCalculator {
         public KingMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
-                    Direction.LEFT, Direction.RIGHT,
-                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
+                    UPLEFT, UP, UPRIGHT,
+                    LEFT, RIGHT,
+                    DOWNLEFT, DOWN, DOWNRIGHT
             };
             this.oneStep = true;
         }
@@ -128,9 +129,9 @@ public abstract class PieceMovesCalculator {
         public RookMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    Direction.UP,
-                    Direction.LEFT, Direction.RIGHT,
-                    Direction.DOWN
+                    UP,
+                    LEFT, RIGHT,
+                    DOWN
             };
         }
     }
@@ -139,8 +140,8 @@ public abstract class PieceMovesCalculator {
         public BishopMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    Direction.UPLEFT, Direction.UPRIGHT,
-                    Direction.DOWNLEFT, Direction.DOWNRIGHT
+                    UPLEFT, UPRIGHT,
+                    DOWNLEFT, DOWNRIGHT
             };
         }
     }
@@ -149,10 +150,10 @@ public abstract class PieceMovesCalculator {
         public KnightMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    Direction.UPUPLEFT, Direction.UPUPRIGHT,
-                    Direction.UPLEFTLEFT, Direction.UPRIGHTRIGHT,
-                    Direction.DOWNLEFTLEFT, Direction.DOWNRIGHTRIGHT,
-                    Direction.DOWNDOWNLEFT, Direction.DOWNDOWNRIGHT
+                    UPUPLEFT, UPUPRIGHT,
+                    UPLEFTLEFT, UPRIGHTRIGHT,
+                    DOWNLEFTLEFT, DOWNRIGHTRIGHT,
+                    DOWNDOWNLEFT, DOWNDOWNRIGHT
             };
             this.oneStep = true;
         }
