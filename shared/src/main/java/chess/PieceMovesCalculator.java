@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import static chess.ChessPiece.PieceType.*;
 
 /**
  * A Calculator to determine viable moves
@@ -10,16 +11,25 @@ public abstract class PieceMovesCalculator {
     protected final ChessBoard board;
     protected final ChessPosition position;
     protected final ChessPiece piece;
-    protected final HashSet<ChessMove> validMoves = new HashSet<>();
-    protected enum MoveType {CLEAR, TAKE, BLOCKED}
+    protected final Collection<ChessMove> validMoves = new HashSet<>();
+    protected enum StepResult {CLEAR, TAKE, BLOCKED}
+    protected final ChessPiece.PieceType[] possiblePromotions = {QUEEN, ROOK, BISHOP, KNIGHT};
+    protected enum Direction {
+        UP(0,-1), RIGHT(1,0), DOWN(0,1), LEFT(-1,0),
+        UPLEFT(-1,-1), UPRIGHT(1,-1), DOWNLEFT(-1,1), DOWNRIGHT(1,1),
+        UPLEFTLEFT(-2,-1), UPUPLEFT(-1,-2), UPUPRIGHT(1,-2), UPRIGHTRIGHT(2,-1),
+        DOWNLEFTLEFT(-2,1), DOWNDOWNLEFT(-1,2), DOWNDOWNRIGHT(1,2), DOWNRIGHTRIGHT(2,1);
 
-    protected int[][] moveAdjusts;
-    protected boolean moveLimit = false;
-    protected ChessPiece.PieceType[] possiblePromotions = new ChessPiece.PieceType[] {
-            ChessPiece.PieceType.QUEEN,
-            ChessPiece.PieceType.ROOK,
-            ChessPiece.PieceType.BISHOP,
-            ChessPiece.PieceType.KNIGHT};
+        public final int x;
+        public final int y;
+
+        Direction(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+    protected Direction[] moveDirections;
+    protected boolean oneStep = false;
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position){
         this.board = board;
@@ -27,66 +37,77 @@ public abstract class PieceMovesCalculator {
         this.piece = board.getPiece(position);
     }
 
-    public static PieceMovesCalculator create(ChessBoard board, ChessPosition position){
-        ChessPiece.PieceType type = board.getPiece(position).getPieceType();
-        if (type == ChessPiece.PieceType.QUEEN) {return new QueenMovesCalculator(board, position);}
-        else if (type == ChessPiece.PieceType.KING) {return new KingMovesCalculator(board, position);}
-        else if (type == ChessPiece.PieceType.ROOK) {return new RookMovesCalculator(board, position);}
-        else if (type == ChessPiece.PieceType.BISHOP) {return new BishopMovesCalculator(board, position);}
-        else if (type == ChessPiece.PieceType.KNIGHT) {return new KnightMovesCalculator(board, position);}
-        else if (type == ChessPiece.PieceType.PAWN) {return new PawnMovesCalculator(board, position);}
-        else {throw new RuntimeException("Unrecognized piece");}
+    public Collection<ChessMove> moveAll() {
+        for(Direction moveDirection : moveDirections){
+            moveLine(moveDirection, oneStep);
+        }
+        return validMoves;
     }
 
-    MoveType validMove(ChessPosition targetPosition) {
-        if (targetPosition.getRow() < 1 || targetPosition.getRow() > 8 || targetPosition.getColumn() < 1 || targetPosition.getColumn() > 8) {
-            return MoveType.BLOCKED;
-        } else if (board.getPiece(targetPosition) == null) {
-            return MoveType.CLEAR;
-        } else if (board.getPiece(targetPosition).getTeamColor() != piece.getTeamColor()) {
-            return MoveType.TAKE;
-        } else {return MoveType.BLOCKED;}
-    }
+    protected void moveLine(Direction moveDirection, boolean oneStep) {
+        ChessPosition target = new ChessPosition(position.getRow(), position.getColumn());
+        boolean stopped = oneStep;
 
-    void moveDirection(int rowAdjust, int columnAdjust, boolean once){
-        boolean stopped = once;
-        ChessPosition targetPosition = new ChessPosition(position.getRow(), position.getColumn());
-        MoveType targetMove;
-
-        do {
-            targetPosition = new ChessPosition(targetPosition.getRow()+rowAdjust, targetPosition.getColumn()+columnAdjust);
-            targetMove = validMove(targetPosition);
-            if (targetMove != MoveType.BLOCKED) {
-                addMove(position, targetPosition, false);
-            }
-            if (targetMove != MoveType.CLEAR) {
-                stopped = true;
+        do{
+            target = new ChessPosition(target.getRow() + moveDirection.x, target.getColumn() + moveDirection.y);
+            switch(moveStep(target)){
+                case BLOCKED:
+                    stopped = true;
+                    break;
+                case CLEAR:
+                    addMove(position, target, false);
+                    break;
+                case TAKE:
+                    addMove(position, target, false);
+                    stopped = true;
+                    break;
             }
         } while (!stopped);
     }
 
-    void addMove(ChessPosition position, ChessPosition targetPosition, boolean promotion) {
-        if(promotion) {
-            for(ChessPiece.PieceType type : possiblePromotions){
-                validMoves.add(new ChessMove(position, targetPosition, type));
-            }
+    protected StepResult moveStep(ChessPosition target) {
+        if(target.getRow() < 1 || target.getRow() > 8 || target.getColumn() < 1 || target.getColumn() > 8) {
+            return StepResult.BLOCKED;
         }
-        else {validMoves.add(new ChessMove(position, targetPosition, null));}
+        if(board.getPiece(target) == null) {
+            return StepResult.CLEAR;
+        }
+        if(board.getPiece(target).getTeamColor() != piece.getTeamColor()) {
+            return StepResult.TAKE;
+        }
+        return StepResult.BLOCKED;
     }
 
-    Collection<ChessMove> pieceMoves() {
-        for(int[] adjust : moveAdjusts){
-            int rowAdjust = adjust[0];
-            int columnAdjust = adjust[1];
-            moveDirection(rowAdjust, columnAdjust, moveLimit);
+    protected void addMove(ChessPosition position, ChessPosition target, boolean promotion){
+        if(promotion){
+            for(ChessPiece.PieceType type : possiblePromotions){
+                validMoves.add(new ChessMove(position, target, type));
+            }
+        } else {
+            validMoves.add(new ChessMove(position, target, null));
         }
-        return validMoves;
+    }
+
+    public static PieceMovesCalculator create(ChessBoard board, ChessPosition position) {
+        ChessPiece piece = board.getPiece(position);
+        return switch(piece.getPieceType()) {
+            case KING -> new KingMovesCalculator(board, position);
+            case QUEEN -> new QueenMovesCalculator(board, position);
+            case BISHOP -> new BishopMovesCalculator(board, position);
+            case KNIGHT -> new KnightMovesCalculator(board, position);
+            case ROOK -> new RookMovesCalculator(board, position);
+            case PAWN -> new PawnMovesCalculator(board, position);
+        };
     }
 
     private static class QueenMovesCalculator extends PieceMovesCalculator {
         public QueenMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveAdjusts = new int[][] {{-1,1},{-1,0},{-1,-1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
+            this.moveDirections = new Direction[] {
+                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
+                            Direction.LEFT, Direction.RIGHT,
+                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
+            };
         }
 
     }
@@ -94,42 +115,57 @@ public abstract class PieceMovesCalculator {
     private static class KingMovesCalculator extends PieceMovesCalculator {
         public KingMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveAdjusts = new int[][] {{-1,1},{-1,0},{-1,-1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
-            this.moveLimit = true;
+            this.moveDirections = new Direction[] {
+                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
+                    Direction.LEFT, Direction.RIGHT,
+                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
+            };
+            this.oneStep = true;
         }
     }
 
     private static class RookMovesCalculator extends PieceMovesCalculator {
         public RookMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveAdjusts = new int[][] {{-1,0},{0,-1},{0,1},{1,0}};
+            this.moveDirections = new Direction[] {
+                    Direction.UP,
+                    Direction.LEFT, Direction.RIGHT,
+                    Direction.DOWN
+            };
         }
     }
 
     private static class BishopMovesCalculator extends PieceMovesCalculator {
         public BishopMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveAdjusts = new int[][] {{-1,-1},{-1,1},{1,-1},{1,1}};
+            this.moveDirections = new Direction[] {
+                    Direction.UPLEFT, Direction.UPRIGHT,
+                    Direction.DOWNLEFT, Direction.DOWNRIGHT
+            };
         }
     }
 
     private static class KnightMovesCalculator extends PieceMovesCalculator {
         public KnightMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveAdjusts = new int[][] {{-2,-1},{-2,1},{-1,-2},{-1,2},{1,-2},{1,2},{2,-1},{2,1}};
-            this.moveLimit = true;
+            this.moveDirections = new Direction[] {
+                    Direction.UPUPLEFT, Direction.UPUPRIGHT,
+                    Direction.UPLEFTLEFT, Direction.UPRIGHTRIGHT,
+                    Direction.DOWNLEFTLEFT, Direction.DOWNRIGHTRIGHT,
+                    Direction.DOWNDOWNLEFT, Direction.DOWNDOWNRIGHT
+            };
+            this.oneStep = true;
         }
     }
 
     private static class PawnMovesCalculator extends PieceMovesCalculator {
+        private final int rowAdjust;
+        private final int startRow;
+        private final int endRow;
+
         public PawnMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-        }
-
-        void moveDirection(ChessGame.TeamColor color){
-            int rowAdjust, startRow, endRow;
-            boolean promotion;
-
+            ChessGame.TeamColor color = piece.getTeamColor();
             if(color == ChessGame.TeamColor.WHITE) {
                 rowAdjust = 1;
                 startRow = 2;
@@ -140,40 +176,30 @@ public abstract class PieceMovesCalculator {
                 startRow = 7;
                 endRow = 1;
             }
-
-            MoveType targetMove;
-            ChessPosition targetPosition = new ChessPosition(position.getRow() + rowAdjust, position.getColumn());
-            ChessPosition pawnTakeLeft = new ChessPosition(targetPosition.getRow(), targetPosition.getColumn()-1);
-            ChessPosition pawnTakeRight = new ChessPosition(targetPosition.getRow(), targetPosition.getColumn()+1);
-
-            promotion = (targetPosition.getRow() == endRow);
-
-            targetMove = validMove(targetPosition);
-            if (targetMove == MoveType.CLEAR) {
-                addMove(position, targetPosition, promotion);
-                if (position.getRow() == startRow) {
-                    ChessPosition doubleStep = new ChessPosition(targetPosition.getRow() + rowAdjust, targetPosition.getColumn());
-                    targetMove = validMove(doubleStep);
-                    if (targetMove == MoveType.CLEAR) {
-                        addMove(position, doubleStep, false);
-                    }
-                }
-            }
-
-            targetMove = validMove(pawnTakeLeft);
-            if (targetMove == MoveType.TAKE) {
-                addMove(position, pawnTakeLeft, promotion);
-            }
-
-            targetMove = validMove(pawnTakeRight);
-            if (targetMove == MoveType.TAKE) {
-                addMove(position, pawnTakeRight, promotion);
-            }
         }
 
         @Override
-        Collection<ChessMove> pieceMoves() {
-            moveDirection(piece.getTeamColor());
+        public Collection<ChessMove> moveAll() {
+            ChessPosition target = new ChessPosition(position.getRow() + rowAdjust, position.getColumn());
+            ChessPosition takeLeft = new ChessPosition(target.getRow(), target.getColumn() - 1);
+            ChessPosition takeRight = new ChessPosition(target.getRow(), target.getColumn() + 1);
+            boolean promotion = (target.getRow() == endRow);
+
+            if (moveStep(target) == StepResult.CLEAR) {
+                addMove(position, target, promotion);
+                if (position.getRow() == startRow) {
+                    target = new ChessPosition(target.getRow() + rowAdjust, target.getColumn());
+                    if (moveStep(target) == StepResult.CLEAR) {
+                        addMove(position, target, promotion);
+                    }
+                }
+            }
+            if (moveStep(takeLeft) == StepResult.TAKE) {
+                addMove(position, takeLeft, promotion);
+            }
+            if (moveStep(takeRight) == StepResult.TAKE) {
+                addMove(position, takeRight, promotion);
+            }
             return validMoves;
         }
     }

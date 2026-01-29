@@ -44,11 +44,6 @@ public class ChessMove {
     }
 
     @Override
-    public String toString() {
-        return String.format("%s%s", startPosition, endPosition);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
@@ -63,4 +58,10 @@ public class ChessMove {
     public int hashCode() {
         return Objects.hash(startPosition, endPosition, promotionPiece);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s%s", startPosition, endPosition);
+    }
+
 }

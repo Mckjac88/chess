@@ -52,7 +52,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return PieceMovesCalculator.create(board, myPosition).pieceMoves();
+        return PieceMovesCalculator.create(board, myPosition).moveAll();
     }
 
     @Override
@@ -71,6 +71,6 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return pieceColor + " " + type;
+        return String.format("%s %s", pieceColor, type);
     }
 }
