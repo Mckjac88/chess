@@ -9,8 +9,8 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
-    private ChessPiece[][] board = new ChessPiece[8][8];
+public class ChessBoard implements Cloneable {
+    protected ChessPiece[][] board;
     private final ChessPiece.PieceType[] rowOrder = {
             ChessPiece.PieceType.ROOK,
             ChessPiece.PieceType.KNIGHT,
@@ -22,7 +22,9 @@ public class ChessBoard {
             ChessPiece.PieceType.ROOK
     };
 
-    public ChessBoard() {}
+    public ChessBoard() {
+         board = new ChessPiece[8][8];
+    }
 
     /**
      * Adds a chess piece to the chessboard
@@ -51,7 +53,7 @@ public class ChessBoard {
      */
     public void resetBoard() {
         board = new ChessPiece[8][8];
-        for(int i = 1; i < 9; i++){
+        for(int i = 1; i <= 8; i++){
             addPiece(new ChessPosition(1, i), new ChessPiece(ChessGame.TeamColor.WHITE, rowOrder[i-1]));
             addPiece(new ChessPosition(2, i), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
             addPiece(new ChessPosition(7, i), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
@@ -77,4 +79,19 @@ public class ChessBoard {
     public String toString() {
         return Arrays.toString(board);
     }
+
+    @Override
+    public Object clone() {
+        try{
+            ChessBoard cloneBoard = (ChessBoard) super.clone();
+            cloneBoard.board = new ChessPiece[8][8];
+            for (int i = 0; i < 8; i++) {
+                cloneBoard.board[i] = board[i].clone();
+            }
+            return cloneBoard;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("This chessboard isn't cloneable for some reason");
+        }
+    }
 }
+
