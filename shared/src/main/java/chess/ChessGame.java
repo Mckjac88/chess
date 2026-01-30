@@ -1,7 +1,7 @@
 package chess;
 
 import java.util.Collection;
-import static chess.ChessGame.TeamColor.WHITE;
+import java.util.Objects;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -10,8 +10,10 @@ import static chess.ChessGame.TeamColor.WHITE;
  * signature of the existing methods.
  */
 public class ChessGame {
-    private TeamColor currentTurn = WHITE;
-    private final ChessBoard gameBoard;
+    private TeamColor currentTurn;
+    private boolean whiteKingMoved, whiteLeftRookMoved, whiteRightRookMoved,
+        blackKingMoved, blackLeftRookMoved, blackRightRookMoved;
+    private ChessBoard gameBoard;
 
     /**
      * Enum identifying the 2 possible teams in a chess game
@@ -74,7 +76,15 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        TeamColor enemyColor = switch(teamColor){case WHITE -> TeamColor.BLACK; case BLACK -> TeamColor.WHITE;};
+        Collection<ChessPosition> enemyLocations = gameBoard.teamLocations(enemyColor);
+        ChessPosition ownKingLocation = gameBoard.kingLocation(teamColor);
+        for (ChessPosition enemyLocation : enemyLocations) {
+            for (ChessMove testMove : gameBoard.getPiece(enemyLocation).pieceMoves(gameBoard, enemyLocation)) {
+                if (testMove.getEndPosition().equals(ownKingLocation)) {return true;}
+            }
+        }
+        return false;
     }
 
     /**
@@ -104,7 +114,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        gameBoard = board;
     }
 
     /**
@@ -113,6 +123,44 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return gameBoard;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return whiteKingMoved == chessGame.whiteKingMoved
+                && whiteLeftRookMoved == chessGame.whiteLeftRookMoved
+                && whiteRightRookMoved == chessGame.whiteRightRookMoved
+                && blackKingMoved == chessGame.blackKingMoved
+                && blackLeftRookMoved == chessGame.blackLeftRookMoved
+                && blackRightRookMoved == chessGame.blackRightRookMoved
+                && currentTurn == chessGame.currentTurn
+                && Objects.equals(gameBoard, chessGame.gameBoard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                currentTurn, whiteKingMoved, whiteLeftRookMoved, whiteRightRookMoved,
+                blackKingMoved, blackLeftRookMoved, blackRightRookMoved, gameBoard);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "currentTurn=" + currentTurn +
+                ", whiteKingMoved=" + whiteKingMoved +
+                ", whiteLeftRookMoved=" + whiteLeftRookMoved +
+                ", whiteRightRookMoved=" + whiteRightRookMoved +
+                ", blackKingMoved=" + blackKingMoved +
+                ", blackLeftRookMoved=" + blackLeftRookMoved +
+                ", blackRightRookMoved=" + blackRightRookMoved +
+                ", gameBoard=" + gameBoard +
+                '}';
     }
 }
+

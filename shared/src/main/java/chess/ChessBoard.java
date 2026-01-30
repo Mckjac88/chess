@@ -74,7 +74,8 @@ public class ChessBoard implements Cloneable {
         for (int i = 1; i <= 8; i++){
             for (int j = 1; j <= 8; j++) {
                 ChessPosition scanLocation = new ChessPosition(i, j);
-                if(getPiece(scanLocation).getTeamColor() == color) {
+                ChessPiece scanPiece = getPiece(scanLocation);
+                if(scanPiece != null && scanPiece.getTeamColor() == color) {
                     locations.add(scanLocation);
                 }
             }
@@ -95,7 +96,9 @@ public class ChessBoard implements Cloneable {
                 if (location == null) {
                     ChessPosition scanLocation = new ChessPosition(i, j);
                     ChessPiece scanPiece = getPiece(scanLocation);
-                    if (scanPiece.getTeamColor() == color && scanPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                    if (scanPiece != null &&
+                                    scanPiece.getTeamColor() == color &&
+                                    scanPiece.getPieceType() == ChessPiece.PieceType.KING) {
                         location = scanLocation;
                     }
                 }
