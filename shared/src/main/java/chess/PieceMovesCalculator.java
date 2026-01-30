@@ -236,16 +236,9 @@ public abstract class PieceMovesCalculator {
         public PawnMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             ChessGame.TeamColor color = piece.getTeamColor();
-            if(color == ChessGame.TeamColor.WHITE) {
-                rowAdjust = 1;
-                startRow = 2;
-                endRow = 8;
-            }
-            else {
-                rowAdjust = -1;
-                startRow = 7;
-                endRow = 1;
-            }
+            rowAdjust = color.pawnRowAdjust;
+            startRow = color.pawnStartRow;
+            endRow = color.pawnEndRow;
         }
 
         @Override
@@ -253,6 +246,23 @@ public abstract class PieceMovesCalculator {
             ChessPosition target = new ChessPosition(position.getRow() + rowAdjust, position.getColumn());
             ChessPosition takeLeft = new ChessPosition(target.getRow(), target.getColumn() - 1);
             ChessPosition takeRight = new ChessPosition(target.getRow(), target.getColumn() + 1);
+            ChessPosition spaceLeft = new ChessPosition(position.getRow(), position.getColumn() - 1);
+            ChessPosition spaceRight = new ChessPosition(position.getRow(), position.getColumn() + 1);
+            boolean pawnLeft = false;
+            boolean pawnRight = true;
+
+            if(!(spaceLeft.getColumn() < 1 || spaceLeft.getColumn() > 8)) {
+                ChessPiece pieceLeft = board.getPiece(spaceLeft);
+                pawnLeft = (pieceLeft != null &&
+                        pieceLeft.getPieceType() == PAWN &&
+                        pieceLeft.getTeamColor() != piece.getTeamColor());
+            }
+            if(!(spaceRight.getColumn() < 1 || spaceRight.getColumn() > 8)) {
+                ChessPiece pieceRight = board.getPiece(spaceRight);
+                 pawnRight = (pieceRight != null &&
+                        pieceRight.getPieceType() == PAWN &&
+                        pieceRight.getTeamColor() != piece.getTeamColor());
+            }
             boolean promotion = (target.getRow() == endRow);
 
             if (moveStep(target) == StepResult.CLEAR) {
@@ -264,10 +274,10 @@ public abstract class PieceMovesCalculator {
                     }
                 }
             }
-            if (moveStep(takeLeft) == StepResult.TAKE) {
+            if (moveStep(takeLeft) == StepResult.TAKE || moveStep(takeLeft) == StepResult.CLEAR && pawnLeft) {
                 addMove(position, takeLeft, promotion);
             }
-            if (moveStep(takeRight) == StepResult.TAKE) {
+            if (moveStep(takeRight) == StepResult.TAKE || moveStep(takeRight) == StepResult.CLEAR && pawnRight) {
                 addMove(position, takeRight, promotion);
             }
             return calculatorMoves;

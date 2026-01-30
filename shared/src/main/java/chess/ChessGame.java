@@ -14,14 +14,27 @@ public class ChessGame implements Cloneable {
     protected TeamColor currentTurn;
     protected boolean whiteKingMoved, whiteLeftRookMoved, whiteRightRookMoved,
         blackKingMoved, blackLeftRookMoved, blackRightRookMoved;
+    protected ChessMove lastMove;
     protected ChessBoard gameBoard;
 
     /**
      * Enum identifying the 2 possible teams in a chess game
      */
     public enum TeamColor {
-        WHITE,
-        BLACK;
+        WHITE(1, 2, 8, 4),
+        BLACK(-1, 7, 1, 5);
+
+        public final int pawnRowAdjust;
+        public final int pawnStartRow;
+        public final int pawnEndRow;
+        public final int pawnDoubleRow;
+
+        TeamColor(int pawnRowAdjust, int pawnStartRow, int pawnEndRow, int pawnDoubleRow){
+            this.pawnRowAdjust = pawnRowAdjust;
+            this.pawnStartRow = pawnStartRow;
+            this.pawnEndRow = pawnEndRow;
+            this.pawnDoubleRow = pawnDoubleRow;
+        }
 
         public TeamColor opposite() {
             return this == WHITE ? BLACK : WHITE;
@@ -61,10 +74,19 @@ public class ChessGame implements Cloneable {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece pieceToMove = gameBoard.getPiece(startPosition);
         if(pieceToMove == null) {return null;}
+
         TeamColor color = pieceToMove.getTeamColor();
         Collection<ChessMove> potentialMoves = pieceToMove.pieceMoves(gameBoard, startPosition);
         Collection<ChessMove> positionValidMoves = new HashSet<>();
+
         for (ChessMove move : potentialMoves) {
+            if(isEnPassant(move)){
+                ChessPosition otherPawn = new ChessPosition(
+                        move.getEndPosition().getRow() - color.pawnRowAdjust,
+                        move.getEndPosition().getColumn()
+                );
+                if(!lastMove.getEndPosition().equals(otherPawn)) {continue;}
+            }
             ChessGame testGame = clone();
             testGame.gameBoard.addPiece(startPosition, null);
             testGame.gameBoard.addPiece(move.getEndPosition(), pieceToMove);
@@ -84,28 +106,40 @@ public class ChessGame implements Cloneable {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
 
+        ChessPiece startPiece = gameBoard.getPiece(startPosition);
+        if (startPiece == null) {throw new InvalidMoveException("No piece at that location");}
+
         if(validMoves(startPosition) != null && !validMoves(startPosition).contains(move)) {
             throw new InvalidMoveException("Invalid move: " + move);
         }
-
-        ChessPiece startPiece = gameBoard.getPiece(startPosition);
-        if (startPiece == null) {throw new InvalidMoveException("No piece at that location");}
 
         TeamColor color = startPiece.getTeamColor();
         if (color != currentTurn) {throw new InvalidMoveException("It's not your turn");}
 
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
         ChessPiece endPiece;
-
         if(promotionPiece == null) {endPiece = startPiece;}
         else {endPiece = new ChessPiece(color, promotionPiece);}
 
+        if(isEnPassant(move)) {
+            ChessPosition otherPawn = new ChessPosition(
+                    move.getEndPosition().getRow() - color.pawnRowAdjust,
+                    move.getEndPosition().getColumn()
+            );
+            gameBoard.addPiece(otherPawn, null);
+        }
         gameBoard.addPiece(startPosition, null);
         gameBoard.addPiece(move.getEndPosition(), endPiece);
-
         currentTurn = getTeamTurn().opposite();
+        lastMove = move;
     }
 
+    private boolean isEnPassant(ChessMove move) {
+        return (gameBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN &&
+                gameBoard.getPiece(move.getEndPosition()) == null &&
+                move.getStartPosition().getColumn() != move.getEndPosition().getColumn()
+            );
+    }
 
     /**
      * Determines if the given team is in check
