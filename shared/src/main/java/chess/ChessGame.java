@@ -25,6 +25,7 @@ public class ChessGame {
 
     public ChessGame() {
         gameBoard = new ChessBoard();
+        gameBoard.resetBoard();
     }
 
     /**
@@ -42,8 +43,6 @@ public class ChessGame {
     public void setTeamTurn(TeamColor team) {
         currentTurn = team;
     }
-
-
 
     /**
      * Gets all valid moves for a piece at the given location
@@ -80,7 +79,7 @@ public class ChessGame {
         Collection<ChessPosition> enemyLocations = gameBoard.teamLocations(enemyColor);
         ChessPosition ownKingLocation = gameBoard.kingLocation(teamColor);
         for (ChessPosition enemyLocation : enemyLocations) {
-            for (ChessMove testMove : gameBoard.getPiece(enemyLocation).pieceMoves(gameBoard, enemyLocation)) {
+            for (ChessMove testMove : validMoves(enemyLocation)) {
                 if (testMove.getEndPosition().equals(ownKingLocation)) {return true;}
             }
         }
@@ -94,7 +93,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return isInCheck(teamColor) && !hasNoValidMove(teamColor);
     }
 
     /**
@@ -105,7 +104,15 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return !isInCheck(teamColor) && hasNoValidMove(teamColor);
+    }
+
+    public boolean hasNoValidMove(TeamColor teamColor) {
+        Collection<ChessPosition> ownLocations = gameBoard.teamLocations(teamColor);
+        for (ChessPosition ownLocation : ownLocations) {
+            if (!validMoves(ownLocation).isEmpty()) {return false;}
+        }
+        return true;
     }
 
     /**
