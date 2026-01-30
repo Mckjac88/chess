@@ -89,7 +89,11 @@ public class ChessGame implements Cloneable {
         }
 
         ChessPiece startPiece = gameBoard.getPiece(startPosition);
+        if (startPiece == null) {throw new InvalidMoveException("No piece at that location");}
+
         TeamColor color = startPiece.getTeamColor();
+        if (color != currentTurn) {throw new InvalidMoveException("It's not your turn");}
+
         ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
         ChessPiece endPiece;
 
@@ -98,6 +102,8 @@ public class ChessGame implements Cloneable {
 
         gameBoard.addPiece(startPosition, null);
         gameBoard.addPiece(move.getEndPosition(), endPiece);
+
+        currentTurn = getTeamTurn().opposite();
     }
 
 
