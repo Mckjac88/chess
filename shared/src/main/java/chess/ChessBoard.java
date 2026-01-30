@@ -1,6 +1,8 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -59,6 +61,48 @@ public class ChessBoard implements Cloneable {
             addPiece(new ChessPosition(7, i), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
             addPiece(new ChessPosition(8, i), new ChessPiece(ChessGame.TeamColor.BLACK, rowOrder[i-1]));
         }
+    }
+
+    /**
+     * Gets positions for pieces of a team color
+     *
+     * @param color the color to search
+     * @return a collection of ChessPositions with team pieces
+     */
+    public Collection<ChessPosition> teamLocations(ChessGame.TeamColor color){
+        Collection<ChessPosition> locations = new HashSet<>();
+        for (int i = 1; i <= 8; i++){
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition scanLocation = new ChessPosition(i, j);
+                if(getPiece(scanLocation).getTeamColor() == color) {
+                    locations.add(scanLocation);
+                }
+            }
+        }
+        return locations;
+    }
+
+    /**
+     * Gets the position of the king given a color
+     *
+     * @param color the color to search
+     * @return a ChessPosition with the king
+     */
+    public ChessPosition kingLocation(ChessGame.TeamColor color){
+        ChessPosition location = null;
+        for (int i = 1; i <= 8; i++){
+            for (int j = 1; j <= 8; j++) {
+                if (location == null) {
+                    ChessPosition scanLocation = new ChessPosition(i, j);
+                    ChessPiece scanPiece = getPiece(scanLocation);
+                    if (scanPiece.getTeamColor() == color && scanPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                        location = scanLocation;
+                    }
+                }
+            }
+        }
+        if (location == null) {throw new RuntimeException("King not found");}
+        return location;
     }
 
     @Override
