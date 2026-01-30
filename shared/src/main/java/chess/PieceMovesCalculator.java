@@ -3,7 +3,7 @@ package chess;
 import java.util.Collection;
 import java.util.HashSet;
 import static chess.ChessPiece.PieceType.*;
-import static chess.PieceMovesCalculator.Direction.*;
+
 
 /**
  * A moves calculator for a single piece given the board and position
@@ -16,7 +16,7 @@ public abstract class PieceMovesCalculator {
     /**
      * Final collection of moves to be returned
      */
-    protected final Collection<ChessMove> validMoves = new HashSet<>();
+    protected final Collection<ChessMove> calculatorMoves = new HashSet<>();
 
     /**
      * Enum for the result of moving a piece one step
@@ -34,10 +34,10 @@ public abstract class PieceMovesCalculator {
      * (this.row for row adjust, this.col for column adjust)
      */
     protected enum Direction {
-        UP(0,-1), RIGHT(1,0), DOWN(0,1), LEFT(-1,0),
-        UPLEFT(-1,-1), UPRIGHT(1,-1), DOWNLEFT(-1,1), DOWNRIGHT(1,1),
-        UPLEFTLEFT(-2,-1), UPUPLEFT(-1,-2), UPUPRIGHT(1,-2), UPRIGHTRIGHT(2,-1),
-        DOWNLEFTLEFT(-2,1), DOWNDOWNLEFT(-1,2), DOWNDOWNRIGHT(1,2), DOWNRIGHTRIGHT(2,1);
+        UP(1,0), RIGHT(0,1), DOWN(-1,0), LEFT(0,-1),
+        UPLEFT(1,-1), UPRIGHT(1,1), DOWNLEFT(-1,-1), DOWNRIGHT(-1,1),
+        UPLEFTLEFT(1,-2), UPUPLEFT(2,-1), UPUPRIGHT(2,1), UPRIGHTRIGHT(1,2),
+        DOWNLEFTLEFT(-1,-2), DOWNDOWNLEFT(-2,-1), DOWNDOWNRIGHT(-2,1), DOWNRIGHTRIGHT(-1,2);
 
         public final int row;
         public final int col;
@@ -74,7 +74,7 @@ public abstract class PieceMovesCalculator {
         for(Direction moveDirection : moveDirections){
             moveLine(moveDirection, oneStep);
         }
-        return validMoves;
+        return calculatorMoves;
     }
 
     /**
@@ -133,10 +133,10 @@ public abstract class PieceMovesCalculator {
     protected void addMove(ChessPosition position, ChessPosition target, boolean promotion){
         if(promotion){
             for(ChessPiece.PieceType type : possiblePromotions){
-                validMoves.add(new ChessMove(position, target, type));
+                calculatorMoves.add(new ChessMove(position, target, type));
             }
         } else {
-            validMoves.add(new ChessMove(position, target, null));
+            calculatorMoves.add(new ChessMove(position, target, null));
         }
     }
 
@@ -163,9 +163,9 @@ public abstract class PieceMovesCalculator {
         public QueenMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    UPLEFT, UP, UPRIGHT,
-                    LEFT, RIGHT,
-                    DOWNLEFT, DOWN, DOWNRIGHT
+                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
+                    Direction.LEFT, Direction.RIGHT,
+                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
             };
         }
 
@@ -175,9 +175,9 @@ public abstract class PieceMovesCalculator {
         public KingMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    UPLEFT, UP, UPRIGHT,
-                    LEFT, RIGHT,
-                    DOWNLEFT, DOWN, DOWNRIGHT
+                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
+                    Direction.LEFT, Direction.RIGHT,
+                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
             };
             this.oneStep = true;
         }
@@ -187,9 +187,9 @@ public abstract class PieceMovesCalculator {
         public RookMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    UP,
-                    LEFT, RIGHT,
-                    DOWN
+                    Direction.UP,
+                    Direction.LEFT, Direction.RIGHT,
+                    Direction.DOWN
             };
         }
     }
@@ -198,8 +198,8 @@ public abstract class PieceMovesCalculator {
         public BishopMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    UPLEFT, UPRIGHT,
-                    DOWNLEFT, DOWNRIGHT
+                    Direction.UPLEFT, Direction.UPRIGHT,
+                    Direction.DOWNLEFT, Direction.DOWNRIGHT
             };
         }
     }
@@ -208,10 +208,10 @@ public abstract class PieceMovesCalculator {
         public KnightMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.moveDirections = new Direction[] {
-                    UPUPLEFT, UPUPRIGHT,
-                    UPLEFTLEFT, UPRIGHTRIGHT,
-                    DOWNLEFTLEFT, DOWNRIGHTRIGHT,
-                    DOWNDOWNLEFT, DOWNDOWNRIGHT
+                    Direction.UPUPLEFT, Direction.UPUPRIGHT,
+                    Direction.UPLEFTLEFT, Direction.UPRIGHTRIGHT,
+                    Direction.DOWNLEFTLEFT, Direction.DOWNRIGHTRIGHT,
+                    Direction.DOWNDOWNLEFT, Direction.DOWNDOWNRIGHT
             };
             this.oneStep = true;
         }
@@ -260,7 +260,7 @@ public abstract class PieceMovesCalculator {
                 if (position.getRow() == startRow) {
                     target = new ChessPosition(target.getRow() + rowAdjust, target.getColumn());
                     if (moveStep(target) == StepResult.CLEAR) {
-                        addMove(position, target, promotion);
+                        addMove(position, target, false);
                     }
                 }
             }
@@ -270,7 +270,7 @@ public abstract class PieceMovesCalculator {
             if (moveStep(takeRight) == StepResult.TAKE) {
                 addMove(position, takeRight, promotion);
             }
-            return validMoves;
+            return calculatorMoves;
         }
     }
 }
