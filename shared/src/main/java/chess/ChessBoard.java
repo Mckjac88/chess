@@ -137,7 +137,7 @@ public class ChessBoard implements Cloneable {
             }
             return cloneBoard;
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException("This chessboard isn't cloneable for some reason");
+            throw new RuntimeException("This chessboard isn't cloneable for some reason" + e);
         }
     }
 }

@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -9,23 +10,29 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessGame {
-    private TeamColor currentTurn;
-    private boolean whiteKingMoved, whiteLeftRookMoved, whiteRightRookMoved,
+public class ChessGame implements Cloneable {
+    protected TeamColor currentTurn;
+    protected boolean whiteKingMoved, whiteLeftRookMoved, whiteRightRookMoved,
         blackKingMoved, blackLeftRookMoved, blackRightRookMoved;
-    private ChessBoard gameBoard;
+    protected ChessBoard gameBoard;
 
     /**
      * Enum identifying the 2 possible teams in a chess game
      */
     public enum TeamColor {
         WHITE,
-        BLACK
+        BLACK;
+
+        public TeamColor opposite() {
+            return this == WHITE ? BLACK : WHITE;
+        }
+
     }
 
     public ChessGame() {
         gameBoard = new ChessBoard();
         gameBoard.resetBoard();
+        currentTurn = TeamColor.WHITE;
     }
 
     /**
@@ -53,9 +60,19 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece pieceToMove = gameBoard.getPiece(startPosition);
-        if(pieceToMove != null) {
-            return pieceToMove.pieceMoves(gameBoard, startPosition);
-        } else {return null;}
+        if(pieceToMove == null) {return null;}
+        TeamColor color = pieceToMove.getTeamColor();
+        Collection<ChessMove> potentialMoves = pieceToMove.pieceMoves(gameBoard, startPosition);
+        Collection<ChessMove> positionValidMoves = new HashSet<>();
+        for (ChessMove move : potentialMoves) {
+            ChessGame testGame = clone();
+            testGame.gameBoard.addPiece(startPosition, null);
+            testGame.gameBoard.addPiece(move.getEndPosition(), pieceToMove);
+            if(!testGame.isInCheck(color)){
+                positionValidMoves.add(move);
+            }
+        }
+        return positionValidMoves;
     }
 
     /**
@@ -65,8 +82,24 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPosition startPosition = move.getStartPosition();
+
+        if(validMoves(startPosition) != null && !validMoves(startPosition).contains(move)) {
+            throw new InvalidMoveException("Invalid move: " + move);
+        }
+
+        ChessPiece startPiece = gameBoard.getPiece(startPosition);
+        TeamColor color = startPiece.getTeamColor();
+        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
+        ChessPiece endPiece;
+
+        if(promotionPiece == null) {endPiece = startPiece;}
+        else {endPiece = new ChessPiece(color, promotionPiece);}
+
+        gameBoard.addPiece(startPosition, null);
+        gameBoard.addPiece(move.getEndPosition(), endPiece);
     }
+
 
     /**
      * Determines if the given team is in check
@@ -75,11 +108,12 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        TeamColor enemyColor = switch(teamColor){case WHITE -> TeamColor.BLACK; case BLACK -> TeamColor.WHITE;};
+        TeamColor enemyColor = teamColor.opposite();
         Collection<ChessPosition> enemyLocations = gameBoard.teamLocations(enemyColor);
         ChessPosition ownKingLocation = gameBoard.kingLocation(teamColor);
+
         for (ChessPosition enemyLocation : enemyLocations) {
-            for (ChessMove testMove : validMoves(enemyLocation)) {
+            for (ChessMove testMove : gameBoard.getPiece(enemyLocation).pieceMoves(gameBoard, enemyLocation)) {
                 if (testMove.getEndPosition().equals(ownKingLocation)) {return true;}
             }
         }
@@ -93,7 +127,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return isInCheck(teamColor) && !hasNoValidMove(teamColor);
+        return isInCheck(teamColor) && hasNoValidMove(teamColor);
     }
 
     /**
@@ -107,6 +141,12 @@ public class ChessGame {
         return !isInCheck(teamColor) && hasNoValidMove(teamColor);
     }
 
+    /**
+     * Determines if the given team has no valid moves
+     *
+     * @param teamColor which team to check for valid moves
+     * @return True if the specified team has no valid moves, otherwise false
+     */
     public boolean hasNoValidMove(TeamColor teamColor) {
         Collection<ChessPosition> ownLocations = gameBoard.teamLocations(teamColor);
         for (ChessPosition ownLocation : ownLocations) {
@@ -168,6 +208,17 @@ public class ChessGame {
                 ", blackRightRookMoved=" + blackRightRookMoved +
                 ", gameBoard=" + gameBoard +
                 '}';
+    }
+
+    @Override
+    protected ChessGame clone() {
+        try{
+            ChessGame gameClone = (ChessGame) super.clone();
+            gameClone.gameBoard = (ChessBoard) gameBoard.clone();
+            return gameClone;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("This chess game isn't cloneable for some reason: " + e);
+        }
     }
 }
 
