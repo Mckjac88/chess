@@ -22,9 +22,7 @@ public class ChessBoard {
             ChessPiece.PieceType.ROOK
     };
 
-    public ChessBoard() {
-        
-    }
+    public ChessBoard() {}
 
     /**
      * Adds a chess piece to the chessboard
