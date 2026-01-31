@@ -18,28 +18,50 @@ public class ChessGame implements Cloneable {
     protected ChessBoard gameBoard;
 
     /**
-     * Enum identifying the 2 possible teams in a chess game
+     * Enum identifying the 2 possible teams in a chess game, as well as holding useful information
+     * for rows associated with each team
      */
     public enum TeamColor {
-        WHITE(1, 2, 8, 4),
-        BLACK(-1, 7, 1, 5);
+        WHITE(1, 2, 8, 4, 1),
+        BLACK(-1, 7, 1, 5, 8);
 
         public final int pawnRowAdjust;
         public final int pawnStartRow;
         public final int pawnEndRow;
         public final int pawnDoubleRow;
+        public final int backRow;
 
-        TeamColor(int pawnRowAdjust, int pawnStartRow, int pawnEndRow, int pawnDoubleRow){
+        TeamColor(int pawnRowAdjust, int pawnStartRow, int pawnEndRow, int pawnDoubleRow, int backRow){
             this.pawnRowAdjust = pawnRowAdjust;
             this.pawnStartRow = pawnStartRow;
             this.pawnEndRow = pawnEndRow;
             this.pawnDoubleRow = pawnDoubleRow;
+            this.backRow = backRow;
         }
 
         public TeamColor opposite() {
             return this == WHITE ? BLACK : WHITE;
         }
 
+    }
+
+    /**
+     * Enum identifying if a move is a castle (with stored boolean value) and which direction it moves
+     */
+    public enum CastleType {
+        LEFT_CASTLE(true, 1, 4),
+        RIGHT_CASTLE(true, 8, 6),
+        NOT_CASTLE(false, -1, -1);
+
+        public final boolean bool;
+        public final int rookStartRow;
+        public final int rookEndRow;
+
+        CastleType(boolean bool, int rookStartRow, int rookEndRow) {
+            this.bool = bool;
+            this.rookStartRow = rookStartRow;
+            this.rookEndRow = rookEndRow;
+        }
     }
 
     public ChessGame() {
@@ -87,9 +109,25 @@ public class ChessGame implements Cloneable {
                 );
                 if(!lastMove.getEndPosition().equals(otherPawn)) {continue;}
             }
+
+            if(isCastle(move).bool){
+                if(isInCheck(color)) {continue;}
+
+                ChessPosition halfway = new ChessPosition(
+                        move.getStartPosition().getRow(),
+                        5 + (move.getEndPosition().getColumn() - 5)/2
+                );
+
+                ChessGame testGame = clone();
+                testGame.gameBoard.addPiece(startPosition, null);
+                testGame.gameBoard.addPiece(halfway, pieceToMove);
+                if(testGame.isInCheck(color)) {continue;}
+            }
+
             ChessGame testGame = clone();
             testGame.gameBoard.addPiece(startPosition, null);
             testGame.gameBoard.addPiece(move.getEndPosition(), pieceToMove);
+
             if(!testGame.isInCheck(color)){
                 positionValidMoves.add(move);
             }
@@ -128,17 +166,52 @@ public class ChessGame implements Cloneable {
             );
             gameBoard.addPiece(otherPawn, null);
         }
+
+        CastleType isCastleMove = isCastle(move);
+        if(isCastleMove.bool) {
+            ChessPosition rookPosition = new ChessPosition(color.backRow, isCastleMove.rookStartRow);
+            gameBoard.addPiece(
+                    new ChessPosition(color.backRow, isCastleMove.rookEndRow),
+                    gameBoard.getPiece(rookPosition)
+            );
+            gameBoard.addPiece(rookPosition, null);
+        }
+
         gameBoard.addPiece(startPosition, null);
         gameBoard.addPiece(move.getEndPosition(), endPiece);
         currentTurn = getTeamTurn().opposite();
         lastMove = move;
     }
 
+    /**
+     * Determines if a move is en passant
+     *
+     * @param move the move to test
+     * @return true if the move is en passant, false otherwise
+     */
     private boolean isEnPassant(ChessMove move) {
         return (gameBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN &&
                 gameBoard.getPiece(move.getEndPosition()) == null &&
                 move.getStartPosition().getColumn() != move.getEndPosition().getColumn()
             );
+    }
+
+    /**
+     * Determines if a move is castling
+     *
+     * @param move the move to test
+     * @return LEFT_CASTLE or RIGHT_CASTLE if the move is castling, NOT_CASTLE otherwise
+     */
+    private CastleType isCastle(ChessMove move) {
+        if (gameBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+            int columnDif = move.getEndPosition().getColumn() - move.getStartPosition().getColumn();
+            if (columnDif == 2) {
+                return CastleType.RIGHT_CASTLE;
+            } else if (columnDif == -2) {
+                return CastleType.LEFT_CASTLE;
+            }
+        }
+        return CastleType.NOT_CASTLE;
     }
 
     /**

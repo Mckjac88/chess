@@ -128,7 +128,8 @@ public abstract class PieceMovesCalculator {
      *
      * @param position starting position of the move
      * @param target ending position of the move
-     * @param promotion whether promotion should be accounted for
+     * @param promotion whether promotion should be accounted for (note that promotion
+     *                  is boolean unlike promotionPiece, which is usually null)
      */
     protected void addMove(ChessPosition position, ChessPosition target, boolean promotion){
         if(promotion){
@@ -180,6 +181,34 @@ public abstract class PieceMovesCalculator {
                     Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
             };
             this.oneStep = true;
+        }
+
+        /**
+         * Short helper function to get the piece on your same row given the column
+         *
+         * @param col the column to check
+         * @return the piece at the location (or null if empty)
+         */
+        private ChessPiece rowPiece(int col) {
+            return board.getPiece(new ChessPosition(position.getRow(), col));
+        }
+
+        @Override
+        public Collection<ChessMove> moveAll() {
+            for(Direction moveDirection : moveDirections){
+                moveLine(moveDirection, oneStep);
+            }
+            if (new ChessPosition(piece.getTeamColor().backRow,5).equals(position)) {
+                if (rowPiece(6) == null && rowPiece(7) == null
+                        && rowPiece(8) != null && rowPiece(8).getPieceType() == ROOK) {
+                    addMove(position, new ChessPosition(position.getRow(), 7), false);
+                }
+                if (rowPiece(4) == null && rowPiece(3) == null && rowPiece(2) == null
+                        && rowPiece(1) != null && rowPiece(1).getPieceType() == ROOK) {
+                    addMove(position, new ChessPosition(position.getRow(), 3), false);
+                }
+            }
+            return calculatorMoves;
         }
     }
 
