@@ -49,18 +49,20 @@ public class ChessGame implements Cloneable {
      * Enum identifying if a move is a castle (with stored boolean value) and which direction it moves
      */
     public enum CastleType {
-        LEFT_CASTLE(true, 1, 4),
-        RIGHT_CASTLE(true, 8, 6),
-        NOT_CASTLE(false, -1, -1);
+        WHITE_LEFT_CASTLE(true, 1, 1, 4),
+        WHITE_RIGHT_CASTLE(true, 1,8, 6),
+        BLACK_LEFT_CASTLE(true, 8, 1, 4),
+        BLACK_RIGHT_CASTLE(true, 8, 8, 6),
+        NOT_CASTLE(false, -1, -1, -1);
 
         public final boolean bool;
-        public final int rookStartRow;
-        public final int rookEndRow;
+        public final ChessPosition rookLocation;
+        public final ChessPosition rookTarget;
 
-        CastleType(boolean bool, int rookStartRow, int rookEndRow) {
+        CastleType(boolean bool, int startRow, int rookStartCol, int rookEndCol) {
             this.bool = bool;
-            this.rookStartRow = rookStartRow;
-            this.rookEndRow = rookEndRow;
+            this.rookLocation = new ChessPosition(startRow, rookStartCol);
+            this.rookTarget = new ChessPosition(startRow, rookEndCol);
         }
     }
 
@@ -68,6 +70,12 @@ public class ChessGame implements Cloneable {
         gameBoard = new ChessBoard();
         gameBoard.resetBoard();
         currentTurn = TeamColor.WHITE;
+        whiteKingMoved = false;
+        whiteLeftRookMoved = false;
+        whiteRightRookMoved = false;
+        blackKingMoved = false;
+        blackLeftRookMoved = false;
+        blackRightRookMoved = false;
     }
 
     /**
@@ -109,9 +117,10 @@ public class ChessGame implements Cloneable {
                 );
                 if(!lastMove.getEndPosition().equals(otherPawn)) {continue;}
             }
-
-            if(isCastle(move).bool){
+            CastleType castle = isCastle(move, color);
+            if(castle.bool){
                 if(isInCheck(color)) {continue;}
+                //if(castleHasMoved(castle)) {continue;}
 
                 ChessPosition halfway = new ChessPosition(
                         move.getStartPosition().getRow(),
@@ -167,14 +176,13 @@ public class ChessGame implements Cloneable {
             gameBoard.addPiece(otherPawn, null);
         }
 
-        CastleType isCastleMove = isCastle(move);
-        if(isCastleMove.bool) {
-            ChessPosition rookPosition = new ChessPosition(color.backRow, isCastleMove.rookStartRow);
+        CastleType castle = isCastle(move, color);
+        if(castle.bool) {
             gameBoard.addPiece(
-                    new ChessPosition(color.backRow, isCastleMove.rookEndRow),
-                    gameBoard.getPiece(rookPosition)
+                    castle.rookTarget,
+                    gameBoard.getPiece(castle.rookLocation)
             );
-            gameBoard.addPiece(rookPosition, null);
+            gameBoard.addPiece(castle.rookLocation, null);
         }
 
         gameBoard.addPiece(startPosition, null);
@@ -202,16 +210,28 @@ public class ChessGame implements Cloneable {
      * @param move the move to test
      * @return LEFT_CASTLE or RIGHT_CASTLE if the move is castling, NOT_CASTLE otherwise
      */
-    private CastleType isCastle(ChessMove move) {
+    private CastleType isCastle(ChessMove move, TeamColor color) {
         if (gameBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
             int columnDif = move.getEndPosition().getColumn() - move.getStartPosition().getColumn();
             if (columnDif == 2) {
-                return CastleType.RIGHT_CASTLE;
+                if(color == TeamColor.WHITE) {return CastleType.WHITE_RIGHT_CASTLE;}
+                if(color == TeamColor.BLACK) {return CastleType.BLACK_RIGHT_CASTLE;}
             } else if (columnDif == -2) {
-                return CastleType.LEFT_CASTLE;
+                if(color == TeamColor.WHITE) {return CastleType.WHITE_LEFT_CASTLE;}
+                if(color == TeamColor.BLACK) {return CastleType.BLACK_LEFT_CASTLE;}
             }
         }
         return CastleType.NOT_CASTLE;
+    }
+
+    private boolean castleHasMoved(CastleType castle) {
+        return switch(castle) {
+            case NOT_CASTLE -> false;
+            case WHITE_LEFT_CASTLE -> whiteKingMoved || whiteLeftRookMoved;
+            case WHITE_RIGHT_CASTLE -> whiteKingMoved || whiteRightRookMoved;
+            case BLACK_LEFT_CASTLE -> blackKingMoved || blackLeftRookMoved;
+            case BLACK_RIGHT_CASTLE -> blackKingMoved || blackRightRookMoved;
+        };
     }
 
     /**

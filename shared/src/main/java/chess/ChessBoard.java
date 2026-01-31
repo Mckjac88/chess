@@ -124,7 +124,19 @@ public class ChessBoard implements Cloneable {
 
     @Override
     public String toString() {
-        return Arrays.toString(board);
+        StringBuilder boardBuilder = new StringBuilder();
+        for(ChessPiece[] row : board){
+            StringBuilder rowBuilder = new StringBuilder();
+            rowBuilder.append("|");
+            for(ChessPiece piece : row){
+                if (piece == null) {rowBuilder.append(" ");}
+                else {rowBuilder.append(piece.getPieceType().typeC);}
+                rowBuilder.append("|");
+            }
+            rowBuilder.append("\n");
+            boardBuilder.insert(0, rowBuilder);
+        }
+        return boardBuilder.toString();
     }
 
     @Override
