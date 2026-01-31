@@ -70,11 +70,11 @@ public class ChessGame implements Cloneable {
         gameBoard = new ChessBoard();
         gameBoard.resetBoard();
         currentTurn = TeamColor.WHITE;
-        whiteKingMoved = false;
         whiteLeftRookMoved = false;
+        whiteKingMoved = false;
         whiteRightRookMoved = false;
-        blackKingMoved = false;
         blackLeftRookMoved = false;
+        blackKingMoved = false;
         blackRightRookMoved = false;
     }
 
@@ -120,7 +120,7 @@ public class ChessGame implements Cloneable {
             CastleType castle = isCastle(move, color);
             if(castle.bool){
                 if(isInCheck(color)) {continue;}
-                //if(castleHasMoved(castle)) {continue;}
+                if(castleHasMoved(castle)) {continue;}
 
                 ChessPosition halfway = new ChessPosition(
                         move.getStartPosition().getRow(),
@@ -185,6 +185,8 @@ public class ChessGame implements Cloneable {
             gameBoard.addPiece(castle.rookLocation, null);
         }
 
+        updateCastleMove(move.getStartPosition());
+
         gameBoard.addPiece(startPosition, null);
         gameBoard.addPiece(move.getEndPosition(), endPiece);
         currentTurn = getTeamTurn().opposite();
@@ -232,6 +234,18 @@ public class ChessGame implements Cloneable {
             case BLACK_LEFT_CASTLE -> blackKingMoved || blackLeftRookMoved;
             case BLACK_RIGHT_CASTLE -> blackKingMoved || blackRightRookMoved;
         };
+    }
+
+    private void updateCastleMove(ChessPosition piecePosition) {
+        int row = piecePosition.getRow();
+        int col = piecePosition.getColumn();
+
+        whiteLeftRookMoved  |= (row == 1 && col == 1);
+        whiteKingMoved      |= (row == 1 && col == 5);
+        whiteRightRookMoved |= (row == 1 && col == 8);
+        blackLeftRookMoved  |= (row == 8 && col == 1);
+        blackKingMoved      |= (row == 8 && col == 5);
+        blackRightRookMoved |= (row == 8 && col == 8);
     }
 
     /**

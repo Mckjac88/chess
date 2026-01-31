@@ -130,7 +130,13 @@ public class ChessBoard implements Cloneable {
             rowBuilder.append("|");
             for(ChessPiece piece : row){
                 if (piece == null) {rowBuilder.append(" ");}
-                else {rowBuilder.append(piece.getPieceType().typeC);}
+                else {
+                    if(piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                        rowBuilder.append(piece.getPieceType().typeString);
+                    } else {
+                        rowBuilder.append(piece.getPieceType().typeString.toLowerCase());
+                    }
+                }
                 rowBuilder.append("|");
             }
             rowBuilder.append("\n");
