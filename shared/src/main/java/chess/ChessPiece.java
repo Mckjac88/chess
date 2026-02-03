@@ -22,15 +22,24 @@ public class ChessPiece {
      * The various different chess piece options
      */
     public enum PieceType {
-        KING("K"),
-        QUEEN("Q"),
-        BISHOP("B"),
-        KNIGHT("N"),
-        ROOK("R"),
-        PAWN("P");
+        KING,
+        QUEEN,
+        BISHOP,
+        KNIGHT,
+        ROOK,
+        PAWN
+    }
 
-        public final String typeString;
-        PieceType(String typeString) {this.typeString = typeString;}
+    public Character getTypeChar () {
+        return switch (type) {
+            case KING -> 'K';
+            case QUEEN -> 'Q';
+            case BISHOP -> 'B';
+            case KNIGHT -> 'N';
+            case ROOK -> 'R';
+            case PAWN -> 'P';
+            default -> '?';
+        };
     }
 
     /**

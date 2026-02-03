@@ -132,9 +132,9 @@ public class ChessBoard implements Cloneable {
                 if (piece == null) {rowBuilder.append(" ");}
                 else {
                     if(piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                        rowBuilder.append(piece.getPieceType().typeString);
+                        rowBuilder.append(piece.getTypeChar());
                     } else {
-                        rowBuilder.append(piece.getPieceType().typeString.toLowerCase());
+                        rowBuilder.append(Character.toLowerCase(piece.getTypeChar()));
                     }
                 }
                 rowBuilder.append("|");
