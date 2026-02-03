@@ -29,29 +29,27 @@ public abstract class PieceMovesCalculator {
      */
     protected final ChessPiece.PieceType[] possiblePromotions = {QUEEN, ROOK, BISHOP, KNIGHT};
 
-    /**
-     * Enum for vectorizing movement directions
-     * (this.row for row adjust, this.col for column adjust)
-     */
-    protected enum Direction {
-        UP(1,0), RIGHT(0,1), DOWN(-1,0), LEFT(0,-1),
-        UPLEFT(1,-1), UPRIGHT(1,1), DOWNLEFT(-1,-1), DOWNRIGHT(-1,1),
-        UPLEFTLEFT(1,-2), UPUPLEFT(2,-1), UPUPRIGHT(2,1), UPRIGHTRIGHT(1,2),
-        DOWNLEFTLEFT(-1,-2), DOWNDOWNLEFT(-2,-1), DOWNDOWNRIGHT(-2,1), DOWNRIGHTRIGHT(-1,2);
-
-        public final int row;
-        public final int col;
-
-        Direction(int row, int col) {
-            this.row = row;
-            this.col = col;
-        }
-    }
+    protected int[] upVec = {1,0};
+    protected int[] rightVec = {0,1};
+    protected int[] downVec = {-1,0};
+    protected int[] leftVec = {0,-1};
+    protected int[] upLeftVec = {1,-1};
+    protected int[] upRightVec = {1,1};
+    protected int[] downLeftVec = {-1,-1};
+    protected int[] downRightVec = {-1,1};
+    protected int[] upLeftLeftVec = {1,-2};
+    protected int[] upUpLeftVec = {2,-1};
+    protected int[] upUpRightVec = {2,1};
+    protected int[] upRightRightVec = {1,2};
+    protected int[] downLeftLeftVec = {-1,-2};
+    protected int[] downDownLeftVec = {-2,-1};
+    protected int[] downDownRightVec = {-2,1};
+    protected int[] downRightRightVec = {-1,2};
 
     /**
      * Collection of move directions to be assigned to each piece type
      */
-    protected Direction[] moveDirections;
+    protected int[][] moveDirections;
 
     /**
      * Whether the piece moves only one space by default
@@ -71,7 +69,7 @@ public abstract class PieceMovesCalculator {
      * @return A collection of valid moves
      */
     public Collection<ChessMove> moveAll() {
-        for(Direction moveDirection : moveDirections){
+        for(int[] moveDirection : moveDirections){
             moveLine(moveDirection, oneStep);
         }
         return calculatorMoves;
@@ -83,12 +81,12 @@ public abstract class PieceMovesCalculator {
      * @param moveDirection the direction the piece can move
      * @param oneStep whether it can only move once in that direction
      */
-    protected void moveLine(Direction moveDirection, boolean oneStep) {
+    protected void moveLine(int[] moveDirection, boolean oneStep) {
         ChessPosition target = new ChessPosition(position.getRow(), position.getColumn());
         boolean stopped = oneStep;
 
         do{
-            target = new ChessPosition(target.getRow() + moveDirection.row, target.getColumn() + moveDirection.col);
+            target = new ChessPosition(target.getRow() + moveDirection[0], target.getColumn() + moveDirection[1]);
             switch(moveStep(target)){
                 case BLOCKED:
                     stopped = true;
@@ -163,10 +161,10 @@ public abstract class PieceMovesCalculator {
     private static class QueenMovesCalculator extends PieceMovesCalculator {
         public QueenMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveDirections = new Direction[] {
-                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
-                    Direction.LEFT, Direction.RIGHT,
-                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
+            this.moveDirections = new int[][] {
+                    upLeftVec, upVec, upRightVec,
+                    leftVec, rightVec,
+                    downLeftVec, downVec, downRightVec
             };
         }
 
@@ -175,10 +173,10 @@ public abstract class PieceMovesCalculator {
     private static class KingMovesCalculator extends PieceMovesCalculator {
         public KingMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveDirections = new Direction[] {
-                    Direction.UPLEFT, Direction.UP, Direction.UPRIGHT,
-                    Direction.LEFT, Direction.RIGHT,
-                    Direction.DOWNLEFT, Direction.DOWN, Direction.DOWNRIGHT
+            this.moveDirections = new int[][] {
+                    upLeftVec, upVec, upRightVec,
+                    leftVec, rightVec,
+                    downLeftVec, downVec, downRightVec
             };
             this.oneStep = true;
         }
@@ -195,7 +193,7 @@ public abstract class PieceMovesCalculator {
 
         @Override
         public Collection<ChessMove> moveAll() {
-            for(Direction moveDirection : moveDirections){
+            for(int[] moveDirection : moveDirections){
                 moveLine(moveDirection, oneStep);
             }
             if (new ChessPosition(piece.getTeamColor().backRow,5).equals(position)) {
@@ -215,10 +213,10 @@ public abstract class PieceMovesCalculator {
     private static class RookMovesCalculator extends PieceMovesCalculator {
         public RookMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveDirections = new Direction[] {
-                    Direction.UP,
-                    Direction.LEFT, Direction.RIGHT,
-                    Direction.DOWN
+            this.moveDirections = new int[][] {
+                    upVec,
+                    leftVec, rightVec,
+                    downVec
             };
         }
     }
@@ -226,9 +224,9 @@ public abstract class PieceMovesCalculator {
     private static class BishopMovesCalculator extends PieceMovesCalculator {
         public BishopMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveDirections = new Direction[] {
-                    Direction.UPLEFT, Direction.UPRIGHT,
-                    Direction.DOWNLEFT, Direction.DOWNRIGHT
+            this.moveDirections = new int[][] {
+                    upLeftVec, upRightVec,
+                    downLeftVec, downRightVec
             };
         }
     }
@@ -236,11 +234,11 @@ public abstract class PieceMovesCalculator {
     private static class KnightMovesCalculator extends PieceMovesCalculator {
         public KnightMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
-            this.moveDirections = new Direction[] {
-                    Direction.UPUPLEFT, Direction.UPUPRIGHT,
-                    Direction.UPLEFTLEFT, Direction.UPRIGHTRIGHT,
-                    Direction.DOWNLEFTLEFT, Direction.DOWNRIGHTRIGHT,
-                    Direction.DOWNDOWNLEFT, Direction.DOWNDOWNRIGHT
+            this.moveDirections = new int[][] {
+                    upUpLeftVec, upUpRightVec,
+                    upLeftLeftVec, upRightRightVec,
+                    downLeftLeftVec, downRightRightVec,
+                    downDownLeftVec, downDownRightVec
             };
             this.oneStep = true;
         }

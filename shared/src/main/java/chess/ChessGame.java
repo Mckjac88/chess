@@ -353,8 +353,7 @@ public class ChessGame implements Cloneable {
                 ", blackKingMoved=" + blackKingMoved +
                 ", blackLeftRookMoved=" + blackLeftRookMoved +
                 ", blackRightRookMoved=" + blackRightRookMoved +
-                ", gameBoard=" + gameBoard +
-                '}';
+                "}\n" + gameBoard;
     }
 
     @Override
