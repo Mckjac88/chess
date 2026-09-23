@@ -138,5 +138,15 @@ public abstract class PieceMovesCalculator {
             if (moveStep(takeLeft) == StepResult.TAKE) addMove(takeLeft);
             return pieceMoves;
         }
+
+        @Override
+        protected void addMove(ChessPosition target) {
+            if (target.getRow() == 1 || target.getRow() == 8) {
+                pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.ROOK));
+                pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.BISHOP));
+                pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.KNIGHT));
+                pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.QUEEN));
+            } else pieceMoves.add(new ChessMove(position, target, null));
+        }
     }
 }
