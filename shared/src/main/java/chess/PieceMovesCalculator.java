@@ -119,5 +119,24 @@ public abstract class PieceMovesCalculator {
             super(board, position);
             this.pieceDirections = new int[][] {{1,0}};
         }
+
+        @Override
+        protected Collection<ChessMove> moveAll() {
+            int step = color == ChessGame.TeamColor.WHITE ? 1 : -1;
+            ChessPosition target = new ChessPosition(position.getRow() + step, position.getColumn());
+            if (moveStep(target) == StepResult.CLEAR) {
+                addMove(target);
+                if (color == ChessGame.TeamColor.WHITE && position.getRow() == 2 ||
+                        color == ChessGame.TeamColor.BLACK && position.getRow() == 7) {
+                    ChessPosition doubleStep = new ChessPosition(target.getRow() + step, target.getColumn());
+                    if (moveStep(doubleStep) == StepResult.CLEAR) addMove(doubleStep);
+                }
+            }
+            ChessPosition takeRight = new ChessPosition(position.getRow() + step, position.getColumn() + 1);
+            if (moveStep(takeRight) == StepResult.TAKE) addMove(takeRight);
+            ChessPosition takeLeft = new ChessPosition(position.getRow() + step, position.getColumn() - 1);
+            if (moveStep(takeLeft) == StepResult.TAKE) addMove(takeLeft);
+            return pieceMoves;
+        }
     }
 }
