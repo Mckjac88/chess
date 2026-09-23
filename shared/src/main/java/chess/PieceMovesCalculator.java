@@ -9,6 +9,8 @@ public abstract class PieceMovesCalculator {
     protected final ChessPiece piece;
     protected final Collection<ChessMove> pieceMoves = new HashSet<>();
     protected int[][] pieceDirections;
+    protected boolean slide;
+    protected enum StepResult {CLEAR, BLOCKED, TAKE}
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position) {
         this.board = board;
@@ -28,20 +30,37 @@ public abstract class PieceMovesCalculator {
         };
     }
 
-    public Collection<ChessMove> moveAll() {
+    protected Collection<ChessMove> moveAll() {
+        for (int[] direction : pieceDirections) {
+            moveLine(direction);
+        }
         return pieceMoves;
     }
 
-    private static class PawnMovesCalculator extends PieceMovesCalculator {
-        public PawnMovesCalculator(ChessBoard board, ChessPosition position) {
-            super(board, position);
-        }
+    protected void moveLine(int[] direction) {
+        ChessPosition target = new ChessPosition(position.getRow(), position.getColumn());
+        boolean sliding = slide;
+        do {
+            target = new ChessPosition(target.getRow() + direction[0], target.getColumn() + direction[1]);
+            var result = moveStep(target);
+            if (result != StepResult.BLOCKED) addMove(target);
+            if (result != StepResult.CLEAR) sliding = false;
+        } while (sliding);
+    }
+
+    protected StepResult moveStep(ChessPosition target){
+        return StepResult.TAKE;
+    }
+
+    protected void addMove(ChessPosition target){
+        pieceMoves.add(new ChessMove(position, target, null));
     }
 
     private static class RookMovesCalculator extends PieceMovesCalculator {
         public RookMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.pieceDirections = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
+            this.slide = true;
         }
     }
 
@@ -52,6 +71,7 @@ public abstract class PieceMovesCalculator {
                     {1,-2},{2,-1},{2,1},{1,2},
                     {-1,2},{-2,1},{-2,-1},{-1,-2}
             };
+            this.slide = false;
         }
     }
 
@@ -59,6 +79,7 @@ public abstract class PieceMovesCalculator {
         public BishopMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
             this.pieceDirections = new int[][] {{1,-1},{1,1},{-1,1},{-1,-1}};
+            this.slide = true;
         }
     }
 
@@ -69,6 +90,7 @@ public abstract class PieceMovesCalculator {
                     {0,-1},{1,0},{0,1},{-1,0},
                     {1,-1},{1,1},{-1,1},{-1,-1}
             };
+            this.slide = true;
         }
     }
 
@@ -79,6 +101,13 @@ public abstract class PieceMovesCalculator {
                     {0,-1},{1,0},{0,1},{-1,0},
                     {1,-1},{1,1},{-1,1},{-1,-1}
             };
+            this.slide = false;
+        }
+    }
+
+    private static class PawnMovesCalculator extends PieceMovesCalculator {
+        public PawnMovesCalculator(ChessBoard board, ChessPosition position) {
+            super(board, position);
         }
     }
 }
