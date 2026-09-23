@@ -13,7 +13,7 @@ public class ChessBoard {
     protected ChessPiece[][] board;
 
     public ChessBoard() {
-        board = new ChessPiece[8][8];
+        this.board = new ChessPiece[8][8];
     }
 
     /**

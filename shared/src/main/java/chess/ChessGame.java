@@ -14,8 +14,8 @@ public class ChessGame {
     protected TeamColor currentTeam;
 
     public ChessGame() {
-        chessBoard = new ChessBoard();
-        currentTeam = TeamColor.WHITE;
+        this.chessBoard = new ChessBoard();
+        this.currentTeam = TeamColor.WHITE;
     }
 
     /**
