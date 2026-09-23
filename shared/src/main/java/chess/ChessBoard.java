@@ -1,5 +1,6 @@
 package chess;
 
+import chess.ChessPiece.PieceType;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -13,7 +14,7 @@ public class ChessBoard {
     protected ChessPiece[][] board;
 
     public ChessBoard() {
-        this.board = new ChessPiece[8][8];
+        board = new ChessPiece[8][8];
     }
 
     /**
@@ -42,8 +43,19 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
+        ChessPiece.PieceType[] backRowOrder = {
+                PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP, PieceType.QUEEN,
+                PieceType.KING, PieceType.BISHOP, PieceType.KNIGHT, PieceType.ROOK
+        };
         board = new ChessPiece[8][8];
+        for (int i=0; i<8; i++) {
+            addPiece(new ChessPosition(1, i+1), new ChessPiece(ChessGame.TeamColor.WHITE, backRowOrder[i]));
+            addPiece(new ChessPosition(8, i+1), new ChessPiece(ChessGame.TeamColor.BLACK, backRowOrder[i]));
+            addPiece(new ChessPosition(2, i+1), new ChessPiece(ChessGame.TeamColor.WHITE, PieceType.PAWN));
+            addPiece(new ChessPosition(7, i+1), new ChessPiece(ChessGame.TeamColor.BLACK, PieceType.PAWN));
+        }
     }
+
 
     @Override
     public String toString() {
