@@ -45,8 +45,8 @@ public abstract class PieceMovesCalculator {
         do {
             target = new ChessPosition(target.getRow() + direction[0], target.getColumn() + direction[1]);
             var result = moveStep(target);
-            if (result != StepResult.BLOCKED) addMove(target);
-            if (result != StepResult.CLEAR) sliding = false;
+            if (result != StepResult.BLOCKED) {addMove(target);}
+            if (result != StepResult.CLEAR) {sliding = false;}
         } while (sliding);
     }
 
@@ -55,8 +55,8 @@ public abstract class PieceMovesCalculator {
             return StepResult.BLOCKED;
         }
         ChessPiece targetPiece = board.getPiece(target);
-        if (targetPiece == null) return StepResult.CLEAR;
-        if (targetPiece.getTeamColor() != color) return StepResult.TAKE;
+        if (targetPiece == null) {return StepResult.CLEAR;}
+        if (targetPiece.getTeamColor() != color) {return StepResult.TAKE;}
         return StepResult.BLOCKED;
 
     }
@@ -129,13 +129,13 @@ public abstract class PieceMovesCalculator {
                 if (color == ChessGame.TeamColor.WHITE && position.getRow() == 2 ||
                         color == ChessGame.TeamColor.BLACK && position.getRow() == 7) {
                     ChessPosition doubleStep = new ChessPosition(target.getRow() + step, target.getColumn());
-                    if (moveStep(doubleStep) == StepResult.CLEAR) addMove(doubleStep);
+                    if (moveStep(doubleStep) == StepResult.CLEAR) {addMove(doubleStep);}
                 }
             }
             ChessPosition takeRight = new ChessPosition(position.getRow() + step, position.getColumn() + 1);
-            if (moveStep(takeRight) == StepResult.TAKE) addMove(takeRight);
+            if (moveStep(takeRight) == StepResult.TAKE) {addMove(takeRight);}
             ChessPosition takeLeft = new ChessPosition(position.getRow() + step, position.getColumn() - 1);
-            if (moveStep(takeLeft) == StepResult.TAKE) addMove(takeLeft);
+            if (moveStep(takeLeft) == StepResult.TAKE) {addMove(takeLeft);}
             return pieceMoves;
         }
 
@@ -146,7 +146,7 @@ public abstract class PieceMovesCalculator {
                 pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.BISHOP));
                 pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.KNIGHT));
                 pieceMoves.add(new ChessMove(position, target, ChessPiece.PieceType.QUEEN));
-            } else pieceMoves.add(new ChessMove(position, target, null));
+            } else {pieceMoves.add(new ChessMove(position, target, null));}
         }
     }
 }
