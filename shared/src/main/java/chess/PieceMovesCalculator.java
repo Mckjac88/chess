@@ -7,6 +7,7 @@ public abstract class PieceMovesCalculator {
     protected final ChessBoard board;
     protected final ChessPosition position;
     protected final ChessPiece piece;
+    protected final ChessGame.TeamColor color;
     protected final Collection<ChessMove> pieceMoves = new HashSet<>();
     protected int[][] pieceDirections;
     protected boolean slide;
@@ -16,6 +17,7 @@ public abstract class PieceMovesCalculator {
         this.board = board;
         this.position = position;
         this.piece = board.getPiece(position);
+        this.color = piece.getTeamColor();
     }
 
     public static PieceMovesCalculator create(ChessBoard board, ChessPosition position) {
@@ -49,7 +51,14 @@ public abstract class PieceMovesCalculator {
     }
 
     protected StepResult moveStep(ChessPosition target){
-        return StepResult.TAKE;
+        if (target.getRow() < 1 || target.getRow() > 8 || target.getColumn() < 1 || target.getColumn() > 8) {
+            return StepResult.BLOCKED;
+        }
+        ChessPiece targetPiece = board.getPiece(target);
+        if (targetPiece == null) return StepResult.CLEAR;
+        if (targetPiece.getTeamColor() != color) return StepResult.TAKE;
+        return StepResult.BLOCKED;
+
     }
 
     protected void addMove(ChessPosition target){
@@ -108,6 +117,7 @@ public abstract class PieceMovesCalculator {
     private static class PawnMovesCalculator extends PieceMovesCalculator {
         public PawnMovesCalculator(ChessBoard board, ChessPosition position) {
             super(board, position);
+            this.pieceDirections = new int[][] {{1,0}};
         }
     }
 }
